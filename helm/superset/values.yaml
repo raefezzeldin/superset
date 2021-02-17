@@ -41,12 +41,36 @@ envFromSecret: '{{ template "superset.fullname" . }}-env'
 ##
 extraEnv: {}
 
+extraArguments:
+- production-mode
+
 configMountPath: "/app/pythonpath"
 
 image:
   repository: apache/superset
   tag: latest
   pullPolicy: IfNotPresent
+
+initFile: |-
+  if [ "$1" == "development-mode" ]; then
+    /usr/local/bin/superset-init --username admin --firstname admin --lastname user --email raef.mohamed@tpaymobile.com --password admin
+    superset run
+  elif [ "$1" == "production-mode" ]; then
+    superset db upgrade
+    superset init
+    gunicorn \
+        -w 10 \
+        -k gevent \
+        --timeout 300 \
+        -b  0.0.0.0:8088 \
+        --limit-request-line 0 \
+        --limit-request-field_size 0 \
+        "superset.app:create_app()"
+  else
+    echo "You need to specify which mode to start in by setting production-mode"
+    echo "or development-mode in extraArguments."
+    exit 1
+  fi
 
 service:
   type: ClusterIP
