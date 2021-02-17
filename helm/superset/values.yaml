@@ -58,6 +58,10 @@ initFile: |-
   elif [ "$1" == "production-mode" ]; then
     superset db upgrade
     superset init
+    pip install mysqlclient
+    pip install pymssql
+    pip install psycopg2-binary
+    pip install elasticsearch-dbapi
     pip install snowflake-sqlalchemy
     gunicorn \
         -w 10 \
