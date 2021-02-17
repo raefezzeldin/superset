@@ -58,6 +58,7 @@ initFile: |-
   elif [ "$1" == "production-mode" ]; then
     superset db upgrade
     superset init
+    pip install snowflake-sqlalchemy
     gunicorn \
         -w 10 \
         -k gevent \
