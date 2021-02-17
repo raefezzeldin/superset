@@ -63,6 +63,7 @@ initFile: |-
     pip install psycopg2-binary
     pip install elasticsearch-dbapi
     pip install snowflake-sqlalchemy
+    /usr/local/bin/superset-init --username admin --firstname admin --lastname user --email raef.mohamed@tpaymobile.com --password admin
     gunicorn \
         -w 10 \
         -k gevent \
