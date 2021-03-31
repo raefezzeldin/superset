@@ -18,12 +18,16 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { styled, t } from '@superset-ui/core';
-import { Collapse } from 'src/common/components';
+import Collapse from 'src/common/components/Collapse';
 import Tabs from 'src/common/components/Tabs';
 import Loading from 'src/components/Loading';
 import TableView, { EmptyWrapperType } from 'src/components/TableView';
 import { getChartDataRequest } from 'src/chart/chartAction';
 import { getClientErrorObject } from 'src/utils/getClientErrorObject';
+import {
+  getFromLocalStorage,
+  setInLocalStorage,
+} from 'src/utils/localStorageHelpers';
 import {
   CopyToClipboardButton,
   FilterInput,
@@ -43,6 +47,12 @@ const NULLISH_RESULTS_STATE = {
 };
 
 const DATA_TABLE_PAGE_SIZE = 50;
+
+const STORAGE_KEYS = {
+  isOpen: 'is_datapanel_open',
+};
+
+const DATAPANEL_KEY = 'data';
 
 const TableControlsWrapper = styled.div`
   display: flex;
@@ -67,6 +77,26 @@ const TabsWrapper = styled.div<{ contentHeight: number }>`
   .table-condensed {
     height: 100%;
     overflow: auto;
+  }
+`;
+
+const CollapseWrapper = styled.div`
+  height: 100%;
+
+  .collapse-inner {
+    height: 100%;
+
+    .ant-collapse-item {
+      height: 100%;
+
+      .ant-collapse-content {
+        height: calc(100% - ${({ theme }) => theme.gridUnit * 8}px);
+
+        .ant-collapse-content-box {
+          height: 100%;
+        }
+      }
+    }
   }
 `;
 
@@ -98,7 +128,9 @@ export const DataTablesPane = ({
     [RESULT_TYPES.results]?: boolean;
     [RESULT_TYPES.samples]?: boolean;
   }>(NULLISH_RESULTS_STATE);
-  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(
+    getFromLocalStorage(STORAGE_KEYS.isOpen, false),
+  );
 
   const getData = useCallback(
     (resultType: string) => {
@@ -139,6 +171,10 @@ export const DataTablesPane = ({
     },
     [queryFormData],
   );
+
+  useEffect(() => {
+    setInLocalStorage(STORAGE_KEYS.isOpen, panelOpen);
+  }, [panelOpen]);
 
   useEffect(() => {
     setIsRequestPending(prevState => ({
@@ -241,29 +277,39 @@ export const DataTablesPane = ({
   return (
     <SouthPane>
       <TabsWrapper contentHeight={tableSectionHeight}>
-        <Collapse
-          accordion
-          bordered={false}
-          onChange={handleCollapseChange}
-          bold
-          ghost
-        >
-          <Collapse.Panel header={t('Data')} key="data">
-            <Tabs
-              fullWidth={false}
-              tabBarExtraContent={TableControls}
-              activeKey={activeTabKey}
-              onChange={setActiveTabKey}
-            >
-              <Tabs.TabPane tab={t('View results')} key={RESULT_TYPES.results}>
-                {renderDataTable(RESULT_TYPES.results)}
-              </Tabs.TabPane>
-              <Tabs.TabPane tab={t('View samples')} key={RESULT_TYPES.samples}>
-                {renderDataTable(RESULT_TYPES.samples)}
-              </Tabs.TabPane>
-            </Tabs>
-          </Collapse.Panel>
-        </Collapse>
+        <CollapseWrapper>
+          <Collapse
+            accordion
+            bordered={false}
+            defaultActiveKey={panelOpen ? DATAPANEL_KEY : undefined}
+            onChange={handleCollapseChange}
+            bold
+            ghost
+            className="collapse-inner"
+          >
+            <Collapse.Panel header={t('Data')} key={DATAPANEL_KEY}>
+              <Tabs
+                fullWidth={false}
+                tabBarExtraContent={TableControls}
+                activeKey={activeTabKey}
+                onChange={setActiveTabKey}
+              >
+                <Tabs.TabPane
+                  tab={t('View results')}
+                  key={RESULT_TYPES.results}
+                >
+                  {renderDataTable(RESULT_TYPES.results)}
+                </Tabs.TabPane>
+                <Tabs.TabPane
+                  tab={t('View samples')}
+                  key={RESULT_TYPES.samples}
+                >
+                  {renderDataTable(RESULT_TYPES.samples)}
+                </Tabs.TabPane>
+              </Tabs>
+            </Collapse.Panel>
+          </Collapse>
+        </CollapseWrapper>
       </TabsWrapper>
     </SouthPane>
   );

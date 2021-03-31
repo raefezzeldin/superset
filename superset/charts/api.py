@@ -65,7 +65,7 @@ from superset.charts.schemas import (
 from superset.commands.exceptions import CommandInvalidError
 from superset.commands.importers.v1.utils import get_contents_from_bundle
 from superset.constants import MODEL_API_RW_METHOD_PERMISSION_MAP, RouteMethod
-from superset.exceptions import SupersetSecurityException
+from superset.exceptions import QueryObjectValidationError, SupersetSecurityException
 from superset.extensions import event_logger
 from superset.models.slice import Slice
 from superset.tasks.thumbnails import cache_chart_thumbnail
@@ -484,12 +484,7 @@ class ChartRestApi(BaseSupersetModelRestApi):
         if result_format == ChartDataResultFormat.CSV:
             # return the first result
             data = result["queries"][0]["data"]
-            return CsvResponse(
-                data,
-                status=200,
-                headers=generate_download_headers("csv"),
-                mimetype="application/csv",
-            )
+            return CsvResponse(data, headers=generate_download_headers("csv"))
 
         if result_format == ChartDataResultFormat.JSON:
             response_data = simplejson.dumps(
@@ -566,9 +561,13 @@ class ChartRestApi(BaseSupersetModelRestApi):
             command = ChartDataCommand()
             query_context = command.set_query_context(json_body)
             command.validate()
+        except QueryObjectValidationError as error:
+            return self.response_400(message=error.message)
         except ValidationError as error:
             return self.response_400(
-                message=_("Request is incorrect: %(error)s", error=error.messages)
+                message=_(
+                    "Request is incorrect: %(error)s", error=error.normalized_messages()
+                )
             )
         except SupersetSecurityException:
             return self.response_401()
@@ -989,11 +988,14 @@ class ChartRestApi(BaseSupersetModelRestApi):
                   type: object
                   properties:
                     formData:
+                      description: upload file (ZIP)
                       type: string
                       format: binary
                     passwords:
+                      description: JSON map of passwords for each file
                       type: string
                     overwrite:
+                      description: overwrite existing databases?
                       type: bool
           responses:
             200:

@@ -18,12 +18,17 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { t, logging, SupersetClient, withTheme } from '@superset-ui/core';
+import {
+  t,
+  logging,
+  SupersetClient,
+  withTheme,
+  ensureIsArray,
+} from '@superset-ui/core';
 
 import ControlHeader from 'src/explore/components/ControlHeader';
 import adhocMetricType from 'src/explore/components/controls/MetricControl/adhocMetricType';
 import savedMetricType from 'src/explore/components/controls/MetricControl/savedMetricType';
-import columnType from 'src/explore/propTypes/columnType';
 import AdhocMetric from 'src/explore/components/controls/MetricControl/AdhocMetric';
 import { OPERATORS } from 'src/explore/constants';
 import FilterDefinitionOption from 'src/explore/components/controls/MetricControl/FilterDefinitionOption';
@@ -34,11 +39,16 @@ import {
   LabelsContainer,
 } from 'src/explore/components/OptionControls';
 import Icon from 'src/components/Icon';
-import DndWithHTML5Backend from 'src/explore/DndContextProvider';
+import columnType from './columnType';
 import AdhocFilterPopoverTrigger from './AdhocFilterPopoverTrigger';
 import AdhocFilterOption from './AdhocFilterOption';
 import AdhocFilter, { CLAUSES, EXPRESSION_TYPES } from './AdhocFilter';
 import adhocFilterType from './adhocFilterType';
+
+const selectedMetricType = PropTypes.oneOfType([
+  PropTypes.string,
+  adhocMetricType,
+]);
 
 const propTypes = {
   name: PropTypes.string,
@@ -47,12 +57,10 @@ const propTypes = {
   datasource: PropTypes.object,
   columns: PropTypes.arrayOf(columnType),
   savedMetrics: PropTypes.arrayOf(savedMetricType),
-  formData: PropTypes.shape({
-    metric: PropTypes.oneOfType([PropTypes.string, adhocMetricType]),
-    metrics: PropTypes.arrayOf(
-      PropTypes.oneOfType([PropTypes.string, adhocMetricType]),
-    ),
-  }),
+  selectedMetrics: PropTypes.oneOfType([
+    selectedMetricType,
+    PropTypes.arrayOf(selectedMetricType),
+  ]),
   isLoading: PropTypes.bool,
 };
 
@@ -61,7 +69,7 @@ const defaultProps = {
   onChange: () => {},
   columns: [],
   savedMetrics: [],
-  formData: {},
+  selectedMetrics: [],
 };
 
 function isDictionaryForAdhocFilter(value) {
@@ -96,11 +104,13 @@ class AdhocFilterControl extends React.Component {
         onRemoveFilter={() => this.onRemoveFilter(index)}
         onMoveLabel={this.moveLabel}
         onDropLabel={() => this.props.onChange(this.state.values)}
+        partitionColumn={this.state.partitionColumn}
       />
     );
     this.state = {
       values: filters,
       options: this.optionsForSelect(this.props),
+      partitionColumn: null,
     };
   }
 
@@ -128,18 +138,7 @@ class AdhocFilterControl extends React.Component {
                 partitions.cols &&
                 Object.keys(partitions.cols).length === 1
               ) {
-                const partitionColumn = partitions.cols[0];
-                this.valueRenderer = (adhocFilter, index) => (
-                  <AdhocFilterOption
-                    adhocFilter={adhocFilter}
-                    onFilterEdit={this.onFilterEdit}
-                    options={this.state.options}
-                    datasource={this.props.datasource}
-                    partitionColumn={partitionColumn}
-                    onRemoveFilter={() => this.onRemoveFilter(index)}
-                    key={index}
-                  />
-                );
+                this.setState({ partitionColumn: partitions.cols[0] });
               }
             }
           })
@@ -151,10 +150,7 @@ class AdhocFilterControl extends React.Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
-    if (
-      this.props.columns !== nextProps.columns ||
-      this.props.formData !== nextProps.formData
-    ) {
+    if (this.props.columns !== nextProps.columns) {
       this.setState({ options: this.optionsForSelect(nextProps) });
     }
     if (this.props.value !== nextProps.value) {
@@ -280,7 +276,7 @@ class AdhocFilterControl extends React.Component {
   optionsForSelect(props) {
     const options = [
       ...props.columns,
-      ...[...(props.formData.metrics || []), props.formData.metric].map(
+      ...ensureIsArray(props.selectedMetrics).map(
         metric =>
           metric &&
           (typeof metric === 'string'
@@ -323,6 +319,7 @@ class AdhocFilterControl extends React.Component {
         datasource={this.props.datasource}
         options={this.state.options}
         onFilterEdit={this.onNewFilter}
+        partitionColumn={this.state.partitionColumn}
         createNew
       >
         {trigger}
@@ -370,4 +367,4 @@ class AdhocFilterControl extends React.Component {
 AdhocFilterControl.propTypes = propTypes;
 AdhocFilterControl.defaultProps = defaultProps;
 
-export default DndWithHTML5Backend(withTheme(AdhocFilterControl));
+export default withTheme(AdhocFilterControl);

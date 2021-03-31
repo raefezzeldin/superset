@@ -18,12 +18,12 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import columnType from 'src/explore/propTypes/columnType';
 import adhocMetricType from 'src/explore/components/controls/MetricControl/adhocMetricType';
-import { DraggableOptionControlLabel } from 'src/explore/components/OptionControls';
-import { OPTION_TYPES } from 'src/explore/components/optionTypes';
+import { OptionControlLabel } from 'src/explore/components/OptionControls';
+import columnType from './columnType';
 import AdhocFilterPopoverTrigger from './AdhocFilterPopoverTrigger';
 import AdhocFilter from './AdhocFilter';
+import { DndItemType } from '../../DndItemType';
 
 const propTypes = {
   adhocFilter: PropTypes.instanceOf(AdhocFilter).isRequired,
@@ -61,14 +61,15 @@ const AdhocFilterOption = ({
     onFilterEdit={onFilterEdit}
     partitionColumn={partitionColumn}
   >
-    <DraggableOptionControlLabel
+    <OptionControlLabel
       label={adhocFilter.getDefaultLabel()}
       onRemove={onRemoveFilter}
       onMoveLabel={onMoveLabel}
       onDropLabel={onDropLabel}
       index={index}
-      type={OPTION_TYPES.filter}
-      isAdhoc
+      type={DndItemType.FilterOption}
+      withCaret
+      isExtra={adhocFilter.isExtra}
     />
   </AdhocFilterPopoverTrigger>
 );

@@ -18,16 +18,13 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import columnType from 'src/explore/propTypes/columnType';
-import { DraggableOptionControlLabel } from 'src/explore/components/OptionControls';
-import { OPTION_TYPES } from 'src/explore/components/optionTypes';
+import columnType from './columnType';
 import AdhocMetricOption from './AdhocMetricOption';
 import AdhocMetric from './AdhocMetric';
 import savedMetricType from './savedMetricType';
-import adhocMetricType from './adhocMetricType';
 
 const propTypes = {
-  option: PropTypes.oneOfType([savedMetricType, adhocMetricType]).isRequired,
+  option: PropTypes.oneOfType([PropTypes.object, PropTypes.string]).isRequired,
   index: PropTypes.number.isRequired,
   onMetricEdit: PropTypes.func,
   onRemoveMetric: PropTypes.func,
@@ -56,10 +53,10 @@ export default function MetricDefinitionValue({
     savedMetrics.find(metric => metric.metric_name === metricName);
 
   let savedMetric;
-  if (option.metric_name) {
-    savedMetric = option;
-  } else if (typeof option === 'string') {
+  if (typeof option === 'string') {
     savedMetric = getSavedMetricByName(option);
+  } else if (option.metric_name) {
+    savedMetric = option;
   }
 
   if (option instanceof AdhocMetric || savedMetric) {
@@ -80,19 +77,6 @@ export default function MetricDefinitionValue({
     };
 
     return <AdhocMetricOption {...metricOptionProps} />;
-  }
-  if (typeof option === 'string') {
-    return (
-      <DraggableOptionControlLabel
-        label={option}
-        onRemove={onRemoveMetric}
-        onMoveLabel={onMoveLabel}
-        onDropLabel={onDropLabel}
-        type={OPTION_TYPES.metric}
-        index={index}
-        isFunction
-      />
-    );
   }
   return null;
 }

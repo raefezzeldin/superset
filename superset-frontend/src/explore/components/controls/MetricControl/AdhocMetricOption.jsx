@@ -18,13 +18,12 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Tooltip } from 'src/common/components/Tooltip';
-import columnType from 'src/explore/propTypes/columnType';
-import { DraggableOptionControlLabel } from 'src/explore/components/OptionControls';
-import { OPTION_TYPES } from 'src/explore/components/optionTypes';
+import { OptionControlLabel } from 'src/explore/components/OptionControls';
+import columnType from './columnType';
 import AdhocMetric from './AdhocMetric';
 import savedMetricType from './savedMetricType';
 import AdhocMetricPopoverTrigger from './AdhocMetricPopoverTrigger';
+import { DndItemType } from '../../DndItemType';
 
 const propTypes = {
   adhocMetric: PropTypes.instanceOf(AdhocMetric),
@@ -62,6 +61,7 @@ class AdhocMetricOption extends React.PureComponent {
       onDropLabel,
       index,
     } = this.props;
+
     return (
       <AdhocMetricPopoverTrigger
         adhocMetric={adhocMetric}
@@ -71,22 +71,18 @@ class AdhocMetricOption extends React.PureComponent {
         savedMetric={savedMetric}
         datasourceType={datasourceType}
       >
-        <Tooltip
-          placement="top"
-          title={savedMetric.expression || adhocMetric.label}
-        >
-          <DraggableOptionControlLabel
-            savedMetric={savedMetric}
-            label={adhocMetric.label}
-            onRemove={this.onRemoveMetric}
-            onMoveLabel={onMoveLabel}
-            onDropLabel={onDropLabel}
-            index={index}
-            type={OPTION_TYPES.metric}
-            isAdhoc
-            isFunction
-          />
-        </Tooltip>
+        <OptionControlLabel
+          savedMetric={savedMetric}
+          adhocMetric={adhocMetric}
+          label={adhocMetric.label}
+          onRemove={this.onRemoveMetric}
+          onMoveLabel={onMoveLabel}
+          onDropLabel={onDropLabel}
+          index={index}
+          type={DndItemType.AdhocMetricOption}
+          withCaret
+          isFunction
+        />
       </AdhocMetricPopoverTrigger>
     );
   }

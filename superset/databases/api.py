@@ -53,6 +53,7 @@ from superset.databases.decorators import check_datasource_access
 from superset.databases.filters import DatabaseFilter
 from superset.databases.schemas import (
     database_schemas_query_schema,
+    DatabaseFunctionNamesResponse,
     DatabasePostSchema,
     DatabasePutSchema,
     DatabaseRelatedObjectsResponse,
@@ -63,6 +64,7 @@ from superset.databases.schemas import (
     TableMetadataResponseSchema,
 )
 from superset.databases.utils import get_table_metadata
+from superset.exceptions import SupersetErrorException
 from superset.extensions import security_manager
 from superset.models.core import Database
 from superset.typing import FlaskResponse
@@ -83,6 +85,7 @@ class DatabaseRestApi(BaseSupersetModelRestApi):
         "schemas",
         "test_connection",
         "related_objects",
+        "function_names",
     }
     resource_name = "database"
     class_permission_name = "Database"
@@ -126,7 +129,6 @@ class DatabaseRestApi(BaseSupersetModelRestApi):
         "explore_database_id",
         "expose_in_sqllab",
         "force_ctas_schema",
-        "function_names",
         "id",
     ]
     add_columns = [
@@ -170,6 +172,7 @@ class DatabaseRestApi(BaseSupersetModelRestApi):
     }
     openapi_spec_tag = "Database"
     openapi_spec_component_schemas = (
+        DatabaseFunctionNamesResponse,
         DatabaseRelatedObjectsResponse,
         DatabaseTestConnectionSchema,
         TableMetadataResponseSchema,
@@ -606,6 +609,8 @@ class DatabaseRestApi(BaseSupersetModelRestApi):
             return self.response(200, message="OK")
         except DatabaseTestConnectionFailedError as ex:
             return self.response_422(message=str(ex))
+        except SupersetErrorException as ex:
+            return self.response(ex.status, message=ex.error.message)
 
     @expose("/<int:pk>/related_objects/", methods=["GET"])
     @protect()
@@ -642,8 +647,8 @@ class DatabaseRestApi(BaseSupersetModelRestApi):
             500:
               $ref: '#/components/responses/500'
         """
-        dataset = DatabaseDAO.find_by_id(pk)
-        if not dataset:
+        database = DatabaseDAO.find_by_id(pk)
+        if not database:
             return self.response_404()
         data = DatabaseDAO.get_related_objects(pk)
         charts = [
@@ -749,11 +754,14 @@ class DatabaseRestApi(BaseSupersetModelRestApi):
                   type: object
                   properties:
                     formData:
+                      description: upload file (ZIP)
                       type: string
                       format: binary
                     passwords:
+                      description: JSON map of passwords for each file
                       type: string
                     overwrite:
+                      description: overwrite existing databases?
                       type: bool
           responses:
             200:
@@ -797,5 +805,45 @@ class DatabaseRestApi(BaseSupersetModelRestApi):
             logger.warning("Import database failed")
             return self.response_422(message=exc.normalized_messages())
         except DatabaseImportError as exc:
-            logger.exception("Import database failed")
+            logger.error("Import database failed")
             return self.response_500(message=str(exc))
+
+    @expose("/<int:pk>/function_names/", methods=["GET"])
+    @protect()
+    @safe
+    @statsd_metrics
+    @event_logger.log_this_with_context(
+        action=lambda self, *args, **kwargs: f"{self.__class__.__name__}"
+        f".function_names",
+        log_to_statsd=False,
+    )
+    def function_names(self, pk: int) -> Response:
+        """Get function names supported by a database
+        ---
+        get:
+          description:
+            Get function names supported by a database
+          parameters:
+          - in: path
+            name: pk
+            schema:
+              type: integer
+          responses:
+            200:
+            200:
+              description: Query result
+              content:
+                application/json:
+                  schema:
+                    $ref: "#/components/schemas/DatabaseFunctionNamesResponse"
+            401:
+              $ref: '#/components/responses/401'
+            404:
+              $ref: '#/components/responses/404'
+            500:
+              $ref: '#/components/responses/500'
+        """
+        database = DatabaseDAO.find_by_id(pk)
+        if not database:
+            return self.response_404()
+        return self.response(200, function_names=database.function_names,)

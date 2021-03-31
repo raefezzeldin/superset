@@ -17,11 +17,13 @@
  * under the License.
  */
 import React, { FunctionComponent, useState, useEffect } from 'react';
-import { styled, t, SupersetClient } from '@superset-ui/core';
+import { styled, t } from '@superset-ui/core';
 import InfoTooltip from 'src/common/components/InfoTooltip';
-import { useSingleViewResource } from 'src/views/CRUD/hooks';
+import {
+  useSingleViewResource,
+  testDatabaseConnection,
+} from 'src/views/CRUD/hooks';
 import withToasts from 'src/messageToasts/enhancers/withToasts';
-import { getClientErrorObject } from 'src/utils/getClientErrorObject';
 import Icon from 'src/components/Icon';
 import Modal from 'src/common/components/Modal';
 import Tabs from 'src/common/components/Tabs';
@@ -29,6 +31,7 @@ import Button from 'src/components/Button';
 import IndeterminateCheckbox from 'src/components/IndeterminateCheckbox';
 import { JsonEditor } from 'src/components/AsyncAceEditor';
 import { DatabaseObject } from './types';
+import { useCommonConf } from './state';
 
 interface DatabaseModalProps {
   addDangerToast: (msg: string) => void;
@@ -40,7 +43,6 @@ interface DatabaseModalProps {
 }
 
 const DEFAULT_TAB_KEY = '1';
-
 const StyledIcon = styled(Icon)`
   margin: auto ${({ theme }) => theme.gridUnit * 2}px auto 0;
 `;
@@ -132,6 +134,7 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
   const [db, setDB] = useState<DatabaseObject | null>(null);
   const [isHidden, setIsHidden] = useState<boolean>(true);
   const [tabKey, setTabKey] = useState<string>(DEFAULT_TAB_KEY);
+  const conf = useCommonConf();
 
   const isEditMode = database !== null;
   const defaultExtra =
@@ -160,36 +163,16 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
     const connection = {
       sqlalchemy_uri: db ? db.sqlalchemy_uri : '',
       database_name:
-        db && db.database_name.length ? db.database_name : undefined,
+        db && db.database_name.trim().length
+          ? db.database_name.trim()
+          : undefined,
       impersonate_user: db ? db.impersonate_user || undefined : undefined,
       extra: db && db.extra && db.extra.length ? db.extra : undefined,
       encrypted_extra: db ? db.encrypted_extra || undefined : undefined,
       server_cert: db ? db.server_cert || undefined : undefined,
     };
 
-    SupersetClient.post({
-      endpoint: 'api/v1/database/test_connection',
-      body: JSON.stringify(connection),
-      headers: { 'Content-Type': 'application/json' },
-    })
-      .then(() => {
-        addSuccessToast(t('Connection looks good!'));
-      })
-      .catch(response =>
-        getClientErrorObject(response).then(error => {
-          addDangerToast(
-            error?.message
-              ? `${t('ERROR: ')}${
-                  typeof error.message === 'string'
-                    ? error.message
-                    : Object.entries(error.message as Record<string, string[]>)
-                        .map(([key, value]) => `(${key}) ${value.join(', ')}`)
-                        .join('\n')
-                }`
-              : t('ERROR: Connection failed. '),
-          );
-        }),
-      );
+    testDatabaseConnection(connection, addDangerToast, addSuccessToast);
   };
 
   // Functions
@@ -202,7 +185,7 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
     if (isEditMode) {
       // Edit
       const update: DatabaseObject = {
-        database_name: db ? db.database_name : '',
+        database_name: db ? db.database_name.trim() : '',
         sqlalchemy_uri: db ? db.sqlalchemy_uri : '',
         ...db,
       };
@@ -224,6 +207,7 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
       }
     } else if (db) {
       // Create
+      db.database_name = db.database_name.trim();
       createResource(db).then(dbId => {
         if (dbId) {
           if (onDatabaseAdd) {
@@ -246,8 +230,7 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
     if (target.type === 'checkbox') {
       data[target.name] = target.checked;
     } else {
-      data[target.name] =
-        typeof target.value === 'string' ? target.value.trim() : target.value;
+      data[target.name] = target.value;
     }
 
     setDB(data);
@@ -279,7 +262,7 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
   const validate = () => {
     if (
       db &&
-      db.database_name.length &&
+      db.database_name.trim().length &&
       db.sqlalchemy_uri &&
       db.sqlalchemy_uri.length
     ) {
@@ -302,11 +285,11 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
         .then(() => {
           setDB(dbFetched);
         })
-        .catch(e =>
+        .catch(errMsg =>
           addDangerToast(
             t(
               'Sorry there was an error fetching database information: %s',
-              e.message,
+              errMsg.message,
             ),
           ),
         );
@@ -402,11 +385,11 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
             <div className="helper">
               {t('Refer to the ')}
               <a
-                href="https://docs.sqlalchemy.org/en/rel_1_2/core/engines.html#"
+                href={conf?.SQLALCHEMY_DOCS_URL ?? ''}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {t('SQLAlchemy docs')}
+                {conf?.SQLALCHEMY_DISPLAY_TEXT ?? ''}
               </a>
               {t(' for more information on how to structure your URI.')}
             </div>
@@ -463,7 +446,9 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
                   onChange={onInputChange}
                 />
                 <div>{t('Expose in SQL Lab')}</div>
-                <InfoTooltip tooltip={t('Expose this DB in SQL Lab')} />
+                <InfoTooltip
+                  tooltip={t('Allow this database to be queried in SQL Lab')}
+                />
               </div>
             </StyledInputContainer>
             <StyledInputContainer>
@@ -476,7 +461,7 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
                 />
                 <div>{t('Allow CREATE TABLE AS')}</div>
                 <InfoTooltip
-                  tooltip={t('Allow CREATE TABLE AS option in SQL Lab')}
+                  tooltip={t('Allow creation of new tables based on queries')}
                 />
               </div>
             </StyledInputContainer>
@@ -490,7 +475,7 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
                 />
                 <div>{t('Allow CREATE VIEW AS')}</div>
                 <InfoTooltip
-                  tooltip={t('Allow CREATE VIEW AS option in SQL Lab')}
+                  tooltip={t('Allow creation of new views based on queries')}
                 />
               </div>
             </StyledInputContainer>
@@ -505,7 +490,7 @@ const DatabaseModal: FunctionComponent<DatabaseModalProps> = ({
                 <div>{t('Allow DML')}</div>
                 <InfoTooltip
                   tooltip={t(
-                    'Allow users to run non-SELECT statements (UPDATE, DELETE, CREATE, ...)',
+                    'Allow manipulation of the database using non-SELECT statements such as UPDATE, DELETE, CREATE, etc.',
                   )}
                 />
               </div>

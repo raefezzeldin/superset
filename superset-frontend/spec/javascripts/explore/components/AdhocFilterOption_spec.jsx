@@ -20,7 +20,7 @@
 import React from 'react';
 import sinon from 'sinon';
 import { shallow } from 'enzyme';
-import Popover from 'src/common/components/Popover';
+import Popover from 'src/components/Popover';
 
 import AdhocFilter, {
   EXPRESSION_TYPES,
@@ -56,6 +56,6 @@ describe('AdhocFilterOption', () => {
     const popover = overlay.find(Popover);
     expect(popover).toHaveLength(1);
     expect(popover.props().defaultVisible).toBe(false);
-    expect(overlay.find('DraggableOptionControlLabel')).toExist();
+    expect(overlay.find('OptionControlLabel')).toExist();
   });
 });

@@ -173,13 +173,25 @@ class TableColumnInlineView(  # pylint: disable=too-many-ancestors
     edit_form_extra_fields = add_form_extra_fields
 
     def pre_add(self, item: "models.SqlMetric") -> None:
-        check_ownership(item.table)
+        logger.warning(
+            "This endpoint is deprecated and will be removed in version 2.0.0"
+        )
+        if app.config["OLD_API_CHECK_DATASET_OWNERSHIP"]:
+            check_ownership(item.table)
 
     def pre_update(self, item: "models.SqlMetric") -> None:
-        check_ownership(item.table)
+        logger.warning(
+            "This endpoint is deprecated and will be removed in version 2.0.0"
+        )
+        if app.config["OLD_API_CHECK_DATASET_OWNERSHIP"]:
+            check_ownership(item.table)
 
     def pre_delete(self, item: "models.SqlMetric") -> None:
-        check_ownership(item.table)
+        logger.warning(
+            "This endpoint is deprecated and will be removed in version 2.0.0"
+        )
+        if app.config["OLD_API_CHECK_DATASET_OWNERSHIP"]:
+            check_ownership(item.table)
 
 
 class SqlMetricInlineView(  # pylint: disable=too-many-ancestors
@@ -223,10 +235,10 @@ class SqlMetricInlineView(  # pylint: disable=too-many-ancestors
         ),
         "extra": utils.markdown(
             "Extra data to specify metric metadata. Currently supports "
-            'certification data of the format: `{ "certification": "certified_by": '
+            'metadata of the format: `{ "certification": { "certified_by": '
             '"Data Platform Team", "details": "This metric is the source of truth." '
-            "} }`. This should be modified from the edit datasource model in "
-            "Explore to ensure correct formatting.",
+            '}, "warning_markdown": "This is a warning." }`. This should be modified '
+            "from the edit datasource model in Explore to ensure correct formatting.",
             True,
         ),
     }
@@ -256,13 +268,25 @@ class SqlMetricInlineView(  # pylint: disable=too-many-ancestors
     edit_form_extra_fields = add_form_extra_fields
 
     def pre_add(self, item: "models.SqlMetric") -> None:
-        check_ownership(item.table)
+        logger.warning(
+            "This endpoint is deprecated and will be removed in version 2.0.0"
+        )
+        if app.config["OLD_API_CHECK_DATASET_OWNERSHIP"]:
+            check_ownership(item.table)
 
     def pre_update(self, item: "models.SqlMetric") -> None:
-        check_ownership(item.table)
+        logger.warning(
+            "This endpoint is deprecated and will be removed in version 2.0.0"
+        )
+        if app.config["OLD_API_CHECK_DATASET_OWNERSHIP"]:
+            check_ownership(item.table)
 
     def pre_delete(self, item: "models.SqlMetric") -> None:
-        check_ownership(item.table)
+        logger.warning(
+            "This endpoint is deprecated and will be removed in version 2.0.0"
+        )
+        if app.config["OLD_API_CHECK_DATASET_OWNERSHIP"]:
+            check_ownership(item.table)
 
 
 class RowLevelSecurityListWidget(
@@ -439,9 +463,9 @@ class TableModelView(  # pylint: disable=too-many-ancestors
         ),
         "extra": utils.markdown(
             "Extra data to specify table metadata. Currently supports "
-            'certification data of the format: `{ "certification": { "certified_by": '
+            'metadata of the format: `{ "certification": { "certified_by": '
             '"Data Platform Team", "details": "This table is the source of truth." '
-            "} }`.",
+            '}, "warning_markdown": "This is a warning." }`.',
             True,
         ),
     }
@@ -476,10 +500,17 @@ class TableModelView(  # pylint: disable=too-many-ancestors
     }
 
     def pre_add(self, item: "TableModelView") -> None:
+        logger.warning(
+            "This endpoint is deprecated and will be removed in version 2.0.0"
+        )
         validate_sqlatable(item)
 
     def pre_update(self, item: "TableModelView") -> None:
-        check_ownership(item)
+        logger.warning(
+            "This endpoint is deprecated and will be removed in version 2.0.0"
+        )
+        if app.config["OLD_API_CHECK_DATASET_OWNERSHIP"]:
+            check_ownership(item)
 
     def post_add(  # pylint: disable=arguments-differ
         self,
@@ -522,6 +553,9 @@ class TableModelView(  # pylint: disable=too-many-ancestors
     def refresh(  # pylint: disable=no-self-use, too-many-branches
         self, tables: Union["TableModelView", List["TableModelView"]]
     ) -> FlaskResponse:
+        logger.warning(
+            "This endpoint is deprecated and will be removed in version 2.0.0"
+        )
         if not isinstance(tables, list):
             tables = [tables]
 

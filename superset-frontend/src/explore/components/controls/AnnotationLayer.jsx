@@ -455,10 +455,9 @@ export default class AnnotationLayer extends React.PureComponent {
         <div style={{ marginRight: '2rem' }}>
           <PopoverSection
             isSelected
-            onSelect={() => {}}
-            title="Annotation Slice Configuration"
-            info={`This section allows you to configure how to use the slice
-               to generate annotations.`}
+            title={t('Annotation Slice Configuration')}
+            info={t(`This section allows you to configure how to use the slice
+               to generate annotations.`)}
           >
             {(annotationType === ANNOTATION_TYPES.EVENT ||
               annotationType === ANNOTATION_TYPES.INTERVAL) && (
@@ -597,7 +596,6 @@ export default class AnnotationLayer extends React.PureComponent {
     return (
       <PopoverSection
         isSelected
-        onSelect={() => {}}
         title={t('Display configuration')}
         info={t('Configure your how you overlay is displayed here.')}
       >
@@ -697,7 +695,6 @@ export default class AnnotationLayer extends React.PureComponent {
           <div style={{ marginRight: '2rem' }}>
             <PopoverSection
               isSelected
-              onSelect={() => {}}
               title={t('Layer configuration')}
               info={t('Configure the basics of your Annotation Layer.')}
             >
@@ -745,17 +742,17 @@ export default class AnnotationLayer extends React.PureComponent {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           {isNew ? (
-            <Button buttonSize="sm" onClick={() => this.props.close()}>
+            <Button buttonSize="small" onClick={() => this.props.close()}>
               {t('Cancel')}
             </Button>
           ) : (
-            <Button buttonSize="sm" onClick={this.deleteAnnotation}>
+            <Button buttonSize="small" onClick={this.deleteAnnotation}>
               {t('Remove')}
             </Button>
           )}
           <div>
             <Button
-              buttonSize="sm"
+              buttonSize="small"
               disabled={!isValid}
               onClick={this.applyAnnotation}
             >
@@ -763,7 +760,7 @@ export default class AnnotationLayer extends React.PureComponent {
             </Button>
 
             <Button
-              buttonSize="sm"
+              buttonSize="small"
               buttonStyle="primary"
               disabled={!isValid}
               onClick={this.submitAnnotation}

@@ -24,6 +24,20 @@ type user = {
   first_name: string;
   last_name: string;
 };
+export type ChartObject = {
+  id: number;
+  slice_name: string;
+};
+
+export type DashboardObject = {
+  dashboard_title: string;
+  id: number;
+};
+
+export type DatabaseObject = {
+  database_name: string;
+  id: number;
+};
 
 export type Recipient = {
   recipient_config_json: {
@@ -77,6 +91,7 @@ export type LogObject = {
   start_dttm: string;
   state: string;
   value: string;
+  uuid: string;
 };
 
 export enum AlertState {

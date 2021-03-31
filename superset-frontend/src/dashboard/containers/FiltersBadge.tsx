@@ -47,12 +47,22 @@ const sortByStatus = (indicators: Indicator[]): Indicator[] => {
     IndicatorStatus.Incompatible,
   ];
   return indicators.sort(
-    (a, b) => statuses.indexOf(a.status) - statuses.indexOf(b.status),
+    (a, b) =>
+      statuses.indexOf(a.status as IndicatorStatus) -
+      statuses.indexOf(b.status as IndicatorStatus),
   );
 };
 
 const mapStateToProps = (
-  { datasources, dashboardFilters, nativeFilters, charts }: any,
+  {
+    datasources,
+    dashboardFilters,
+    nativeFilters,
+    dashboardInfo,
+    charts,
+    dataMask,
+    dashboardLayout: { present },
+  }: any,
   { chartId }: FiltersBadgeProps,
 ) => {
   const dashboardIndicators = selectIndicatorsForChart(
@@ -64,8 +74,11 @@ const mapStateToProps = (
 
   const nativeIndicators = selectNativeIndicatorsForChart(
     nativeFilters,
+    dataMask,
     chartId,
     charts,
+    present,
+    dashboardInfo.metadata?.chart_configuration,
   );
 
   const indicators = uniqWith(
@@ -77,6 +90,9 @@ const mapStateToProps = (
         ind2.status !== IndicatorStatus.Applied),
   );
 
+  const appliedCrossFilterIndicators = indicators.filter(
+    indicator => indicator.status === IndicatorStatus.CrossFilterApplied,
+  );
   const appliedIndicators = indicators.filter(
     indicator => indicator.status === IndicatorStatus.Applied,
   );
@@ -90,6 +106,7 @@ const mapStateToProps = (
   return {
     chartId,
     appliedIndicators,
+    appliedCrossFilterIndicators,
     unsetIndicators,
     incompatibleIndicators,
   };

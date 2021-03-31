@@ -24,7 +24,7 @@ import Tabs from 'src/common/components/Tabs';
 import Button from 'src/components/Button';
 import { Select } from 'src/common/components/Select';
 import { styled, t } from '@superset-ui/core';
-import { ColumnOption } from '@superset-ui/chart-controls';
+import { ColumnOption, MetricOption } from '@superset-ui/chart-controls';
 
 import FormLabel from 'src/components/FormLabel';
 import { SQLEditor } from 'src/components/AsyncAceEditor';
@@ -32,7 +32,7 @@ import sqlKeywords from 'src/SqlLab/utils/sqlKeywords';
 import { noOp } from 'src/utils/common';
 
 import { AGGREGATES_OPTIONS } from 'src/explore/constants';
-import columnType from 'src/explore/propTypes/columnType';
+import columnType from './columnType';
 import savedMetricType from './savedMetricType';
 import AdhocMetric, { EXPRESSION_TYPES } from './AdhocMetric';
 
@@ -42,14 +42,11 @@ const propTypes = {
   onClose: PropTypes.func.isRequired,
   onResize: PropTypes.func.isRequired,
   getCurrentTab: PropTypes.func,
+  getCurrentLabel: PropTypes.func,
   columns: PropTypes.arrayOf(columnType),
   savedMetricsOptions: PropTypes.arrayOf(savedMetricType),
   savedMetric: savedMetricType,
   datasourceType: PropTypes.string,
-  title: PropTypes.shape({
-    label: PropTypes.string,
-    hasCustomLabel: PropTypes.bool,
-  }),
 };
 
 const defaultProps = {
@@ -72,7 +69,7 @@ export const SAVED_TAB_KEY = 'SAVED';
 const startingWidth = 320;
 const startingHeight = 240;
 
-export default class AdhocMetricEditPopover extends React.Component {
+export default class AdhocMetricEditPopover extends React.PureComponent {
   // "Saved" is a default tab unless there are no saved metrics for dataset
   defaultActiveTabKey =
     (this.props.savedMetric.metric_name || this.props.adhocMetric.isNew) &&
@@ -110,20 +107,31 @@ export default class AdhocMetricEditPopover extends React.Component {
     this.props.getCurrentTab(this.defaultActiveTabKey);
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      prevState.adhocMetric?.sqlExpression !==
+        this.state.adhocMetric?.sqlExpression ||
+      prevState.adhocMetric?.aggregate !== this.state.adhocMetric?.aggregate ||
+      prevState.adhocMetric?.column?.column_name !==
+        this.state.adhocMetric?.column?.column_name ||
+      prevState.savedMetric?.metric_name !== this.state.savedMetric?.metric_name
+    ) {
+      this.props.getCurrentLabel({
+        savedMetricLabel:
+          this.state.savedMetric?.verbose_name ||
+          this.state.savedMetric?.metric_name,
+        adhocMetricLabel: this.state.adhocMetric?.getDefaultLabel(),
+      });
+    }
+  }
+
   componentWillUnmount() {
     document.removeEventListener('mouseup', this.onMouseUp);
     document.removeEventListener('mousemove', this.onMouseMove);
   }
 
   onSave() {
-    const { title } = this.props;
-    const { hasCustomLabel } = title;
-    let { label } = title;
     const { adhocMetric, savedMetric } = this.state;
-    const metricLabel = adhocMetric.label;
-    if (!hasCustomLabel) {
-      label = metricLabel;
-    }
 
     const metric = savedMetric?.metric_name ? savedMetric : adhocMetric;
     const oldMetric = this.props.savedMetric?.metric_name
@@ -132,8 +140,6 @@ export default class AdhocMetricEditPopover extends React.Component {
     this.props.onChange(
       {
         ...metric,
-        label,
-        hasCustomLabel,
       },
       oldMetric,
     );
@@ -266,7 +272,6 @@ export default class AdhocMetricEditPopover extends React.Component {
       datasourceType,
       ...popoverProps
     } = this.props;
-
     const { adhocMetric, savedMetric } = this.state;
     const keywords = sqlKeywords.concat(
       columns.map(column => ({
@@ -348,7 +353,11 @@ export default class AdhocMetricEditPopover extends React.Component {
               <FormLabel>
                 <strong>{t('Saved metric')}</strong>
               </FormLabel>
-              <Select name="select-saved" {...savedSelectProps}>
+              <Select
+                {...savedSelectProps}
+                name="select-saved"
+                getPopupContainer={triggerNode => triggerNode.parentNode}
+              >
                 {Array.isArray(savedMetricsOptions) &&
                   savedMetricsOptions.map(savedMetric => (
                     <Select.Option
@@ -358,7 +367,7 @@ export default class AdhocMetricEditPopover extends React.Component {
                       }
                       key={savedMetric.id}
                     >
-                      {this.renderColumnOption(savedMetric)}
+                      <MetricOption metric={savedMetric} showType />
                     </Select.Option>
                   ))}
               </Select>
@@ -369,7 +378,11 @@ export default class AdhocMetricEditPopover extends React.Component {
               <FormLabel>
                 <strong>{t('column')}</strong>
               </FormLabel>
-              <Select name="select-column" {...columnSelectProps}>
+              <Select
+                {...columnSelectProps}
+                name="select-column"
+                getPopupContainer={triggerNode => triggerNode.parentNode}
+              >
                 {columns.map(column => (
                   <Select.Option
                     value={column.id}
@@ -385,7 +398,11 @@ export default class AdhocMetricEditPopover extends React.Component {
               <FormLabel>
                 <strong>{t('aggregate')}</strong>
               </FormLabel>
-              <Select name="select-aggregate" {...aggregateSelectProps}>
+              <Select
+                {...aggregateSelectProps}
+                name="select-aggregate"
+                getPopupContainer={triggerNode => triggerNode.parentNode}
+              >
                 {AGGREGATES_OPTIONS.map(option => (
                   <Select.Option value={option} key={option}>
                     {option}

@@ -21,7 +21,7 @@ import moment from 'moment';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { styled, CategoricalColorNamespace, t } from '@superset-ui/core';
-import { ButtonGroup } from 'react-bootstrap';
+import ButtonGroup from 'src/components/ButtonGroup';
 
 import {
   LOG_ACTIONS_PERIODIC_RENDER_DASHBOARD,
@@ -387,6 +387,7 @@ class Header extends React.PureComponent {
       <StyledDashboardHeader
         className="dashboard-header"
         data-test="dashboard-header"
+        data-test-id={`${dashboardInfo.id}`}
       >
         <div className="dashboard-component-header header-large">
           <EditableTitle
@@ -482,7 +483,7 @@ class Header extends React.PureComponent {
             <>
               <span
                 role="button"
-                title="Edit dashboard"
+                title={t('Edit dashboard')}
                 tabIndex={0}
                 className="action-button"
                 onClick={this.toggleEditMode}

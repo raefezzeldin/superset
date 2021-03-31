@@ -20,7 +20,6 @@ from typing import Any, Dict, NamedTuple, List, Pattern, Tuple, Union
 from unittest.mock import patch
 import pytest
 
-import tests.test_app
 from superset import db
 from superset.connectors.sqla.models import SqlaTable, TableColumn
 from superset.db_engine_specs.druid import DruidEngineSpec
@@ -85,11 +84,9 @@ class TestDatabaseModel(SupersetTestCase):
             "TEXT": GenericDataType.STRING,
             "NTEXT": GenericDataType.STRING,
             # numeric
-            "INT": GenericDataType.NUMERIC,
+            "INTEGER": GenericDataType.NUMERIC,
             "BIGINT": GenericDataType.NUMERIC,
-            "FLOAT": GenericDataType.NUMERIC,
             "DECIMAL": GenericDataType.NUMERIC,
-            "MONEY": GenericDataType.NUMERIC,
             # temporal
             "DATE": GenericDataType.TEMPORAL,
             "DATETIME": GenericDataType.TEMPORAL,

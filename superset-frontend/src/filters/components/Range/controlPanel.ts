@@ -16,29 +16,34 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-import { t, validateNonEmpty } from '@superset-ui/core';
-import { ControlPanelConfig, sections } from '@superset-ui/chart-controls';
+import { t } from '@superset-ui/core';
+import {
+  ControlPanelConfig,
+  sections,
+  sharedControls,
+} from '@superset-ui/chart-controls';
 
 const config: ControlPanelConfig = {
-  // For control input types, see: superset-frontend/src/explore/components/controls/index.js
   controlPanelSections: [
-    // @ts-ignore
     sections.legacyRegularTime,
     {
       label: t('Query'),
       expanded: true,
-      controlSetRows: [['groupby'], ['adhoc_filters']],
+      controlSetRows: [
+        [
+          {
+            name: 'groupby',
+            config: {
+              ...sharedControls.groupby,
+              label: 'Column',
+              description:
+                'The numeric column based on which to calculate the range',
+            },
+          },
+        ],
+      ],
     },
   ],
-  controlOverrides: {
-    groupby: {
-      validators: [validateNonEmpty],
-      clearable: false,
-    },
-    row_limit: {
-      default: 100,
-    },
-  },
 };
 
 export default config;
