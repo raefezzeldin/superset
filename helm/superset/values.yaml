@@ -3,7 +3,7 @@ affinity: {}
 configFromSecret: '{{ template "superset.fullname" . }}-config'
 configMountPath: /app/pythonpath
 configOverrides:
-  ENABLE_TEMPLATE_PROCESSING: True
+  ENABLE_TEMPLATE_PROCESSING: 'True'
 envFromSecret: '{{ template "superset.fullname" . }}-env'
 extraConfigMountPath: /app/configs
 extraConfigs: {}
