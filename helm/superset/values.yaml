@@ -74,7 +74,7 @@ init:
   loadExamples: false
 nodeSelector: {}
 postgresql:
-  enabled: true
+  enabled: false
   existingSecret: postgresql
   existingSecretKey: postgresql-password
   persistence:
@@ -89,7 +89,7 @@ postgresql:
 redis:
   cluster:
     enabled: true
-  enabled: true
+  enabled: false
   existingSecret: redis
   existingSecretKey: redis-password
   master:
@@ -98,6 +98,7 @@ redis:
         - ReadWriteOnce
       enabled: true
   password: redis
+  redisHost: redis-headless
   usePassword: true
 replicaCount: 1
 resources: {}
