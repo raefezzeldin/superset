@@ -88,7 +88,7 @@ postgresql:
     port: 5432
 redis:
   cluster:
-    enabled: false
+    enabled: true
   enabled: true
   existingSecret: redis
   existingSecretKey: redis-password
@@ -96,7 +96,7 @@ redis:
     persistence:
       accessModes:
         - ReadWriteOnce
-      enabled: false
+      enabled: true
   password: redis
   usePassword: true
 replicaCount: 1
@@ -142,8 +142,8 @@ supersetNode:
     db_pass: superset
     db_port: '5432'
     db_user: superset
-    redis_host: redis-master
-    redis_port: 6379
+    redis_host: redis-headless
+    redis_port: '6379'
   forceReload: false
   initContainers:
     - command:
