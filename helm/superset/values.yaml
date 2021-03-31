@@ -3,7 +3,7 @@ affinity: {}
 configFromSecret: '{{ template "superset.fullname" . }}-config'
 configMountPath: /app/pythonpath
 configOverrides:
-  ENABLE_TEMPLATE_PROCESSING: 'True'
+  ENABLE_TEMPLATE_PROCESSING: True
 envFromSecret: '{{ template "superset.fullname" . }}-env'
 extraConfigMountPath: /app/configs
 extraConfigs: {}
@@ -16,9 +16,9 @@ image:
   tag: latest
 ingress:
   annotations: {}
-  enabled: false
+  enabled: true
   hosts:
-    - chart-example.local
+    - superset.172.30.0.102.xip.io
   path: /
   tls: []
 init:
