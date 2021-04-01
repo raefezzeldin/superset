@@ -39,7 +39,7 @@ COPY superset-frontend/package.json /app/superset-frontend/
 RUN cd /app \
     && mkdir -p superset/static \
     && touch superset/static/version_info.json \
-    && pip install --no-cache -r requirements/development.txt
+    && pip install --no-cache -r requirements/local.txt
 
 
 ######################################################################
@@ -106,6 +106,11 @@ COPY setup.py MANIFEST.in README.md /app/
 RUN cd /app \
         && chown -R superset:superset * \
         && pip install -e .
+        && pip install mysqlclient
+        && pip install pymssql
+        && pip install psycopg2-binary
+        && pip install elasticsearch-dbapi
+        && pip install snowflake-sqlalchemy
 
 COPY ./docker/docker-entrypoint.sh /usr/bin/
 
