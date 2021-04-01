@@ -90,7 +90,7 @@ redis:
   cluster:
     enabled: false
   enabled: false
-  existingSecret: redis
+  existingSecret: 
   existingSecretKey: redis-password
   master:
     persistence:
