@@ -105,11 +105,11 @@ COPY superset /app/superset
 COPY setup.py MANIFEST.in README.md /app/
 RUN cd /app \
         && chown -R superset:superset * \
-        && pip install -e .
-        && pip install mysqlclient
-        && pip install pymssql
-        && pip install psycopg2-binary
-        && pip install elasticsearch-dbapi
+        && pip install -e . \
+        && pip install mysqlclient \
+        && pip install pymssql \
+        && pip install psycopg2-binary \
+        && pip install elasticsearch-dbapi \
         && pip install snowflake-sqlalchemy
 
 COPY ./docker/docker-entrypoint.sh /usr/bin/
