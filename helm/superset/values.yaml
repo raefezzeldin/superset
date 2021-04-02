@@ -2,7 +2,10 @@ additionalAptPackages: {}
 affinity: {}
 configFromSecret: superset-config
 configMountPath: /app/pythonpath
-configOverrides: {}
+configOverrides: |
+  FEATURE_FLAGS = {
+    "ENABLE_TEMPLATE_PROCESSING": True,
+  }
 envFromSecret: '{{ template "superset.fullname" . }}-env'
 extraConfigMountPath: /app/configs
 extraConfigs: {}
