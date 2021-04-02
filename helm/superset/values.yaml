@@ -1,6 +1,6 @@
 additionalAptPackages: {}
 affinity: {}
-configFromSecret: '{{ template "superset.fullname" . }}-config'
+configFromSecret: superset-config-file
 configMountPath: /app/pythonpath
 configOverrides:
   ENABLE_TEMPLATE_PROCESSING: 'True'
