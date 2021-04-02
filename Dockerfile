@@ -126,17 +126,6 @@ ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
 
 ######################################################################
 # Dev image...
-######################################################################
-FROM lean AS dev
-
-COPY ./requirements/*.txt ./docker/requirements-*.txt/ /app/requirements/
-
-USER root
-# Cache everything for dev purposes...
-RUN cd /app \
-    && pip install --no-cache -r requirements/docker.txt \
-    && pip install --no-cache -r requirements/requirements-local.txt || true
-USER superset
 
 
 ######################################################################
