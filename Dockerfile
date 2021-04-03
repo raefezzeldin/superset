@@ -13,5 +13,6 @@ RUN pip install pymssql
 RUN pip install psycopg2-binary 
 RUN pip install elasticsearch-dbapi 
 RUN pip install snowflake-sqlalchemy
+RUN sed 's/ENABLE_TEMPLATE_PROCESSING = False/ENABLE_TEMPLATE_PROCESSING = True/g' /app/superset/config.py
 # Switching back to using the `superset` user
 USER superset
